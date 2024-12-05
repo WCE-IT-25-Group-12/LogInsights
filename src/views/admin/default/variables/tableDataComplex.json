@@ -1,0 +1,26 @@
+[
+  {
+    "name": "AWS Logs",
+    "status": "Secure",
+    "date": "18 Apr 2022",
+    "progress": 75.5
+  },
+  {
+    "name": "Ubuntu System Logs",
+    "status": "Attack Detected",
+    "date": "18 Apr 2022",
+    "progress": 25.5
+  },
+  {
+    "name": "Firewall Logs",
+    "status": "Warning",
+    "date": "20 May 2021",
+    "progress": 90
+  },
+  {
+    "name": "GCP Logs",
+    "status": "Secure",
+    "date": "12 Jul 2021",
+    "progress": 50.5
+  }
+]
