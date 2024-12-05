@@ -50,9 +50,9 @@ const routes = [
   //   component: <DataTables />,
   // },
   {
-    name: 'Profile',
+    name: 'Home',
     layout: '/admin',
-    path: '/profile',
+    path: '/home',
     icon: <Icon as={MdPerson} width="20px" height="20px" color="inherit" />,
     component: <Profile />,
   },

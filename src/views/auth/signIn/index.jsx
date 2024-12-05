@@ -20,12 +20,21 @@ import {
 import { HSeparator } from 'components/separator/Separator';
 import DefaultAuth from 'layouts/auth/Default';
 // Assets
-import illustration from 'assets/img/auth/auth.png';
+import illustration from 'assets/img/auth/menu.png';
 import { FcGoogle } from 'react-icons/fc';
 import { MdOutlineRemoveRedEye } from 'react-icons/md';
 import { RiEyeCloseLine } from 'react-icons/ri';
+import { useDispatch, useSelector } from 'react-redux';
+import { toggleSignIn } from '../../../redux/store';
 
 function SignIn() {
+  const signedIn = useSelector((state) => state.signedIn);
+  const dispatch = useDispatch();
+
+  const handleToggle = () => {
+    dispatch(toggleSignIn());
+  };
+
   // Chakra color mode
   const textColor = useColorModeValue('navy.700', 'white');
   const textColorSecondary = 'gray.400';
