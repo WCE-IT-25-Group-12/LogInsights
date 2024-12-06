@@ -1,27 +1,20 @@
-// src/redux/authSlice.js
+// redux/authSlice.js
+import { createSlice } from '@reduxjs/toolkit';
+
 const initialState = {
   signedIn: false,
 };
 
-// Action Types
-const TOGGLE_SIGN_IN = 'auth/toggleSignIn';
-
-// Action Creators
-export const toggleSignIn = () => ({
-  type: TOGGLE_SIGN_IN,
+const authSlice = createSlice({
+  name: 'auth',
+  initialState,
+  reducers: {
+    setSignedIn: (state, action) => {
+      console.log('setSignedIn called with:', action.payload);
+      state.signedIn = action.payload;
+    },
+  },
 });
 
-// Reducer
-const authReducer = (state = initialState, action) => {
-  switch (action.type) {
-    case TOGGLE_SIGN_IN:
-      return {
-        ...state,
-        signedIn: !state.signedIn,
-      };
-    default:
-      return state;
-  }
-};
-
-export default authReducer;
+export const { setSignedIn } = authSlice.actions;
+export default authSlice.reducer;

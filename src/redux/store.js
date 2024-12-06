@@ -1,28 +1,11 @@
-// src/redux/store.js
-import { createStore } from 'redux';
+// redux/store.js
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './authSlice';
 
-const initialState = {
-  signedIn: false,
-};
-
-// Reducer
-const authReducer = (state = initialState, action) => {
-  switch (action.type) {
-    case 'TOGGLE_SIGN_IN':
-      return {
-        signedIn: !state.signedIn,
-      };
-    default:
-      return state;
-  }
-};
-
-// Action Creators
-export const toggleSignIn = () => ({
-  type: 'TOGGLE_SIGN_IN',
+const store = configureStore({
+  reducer: {
+    auth: authReducer, // 'auth' is the key under which the reducer is registered
+  },
 });
-
-// Create Store
-const store = createStore(authReducer);
 
 export default store;

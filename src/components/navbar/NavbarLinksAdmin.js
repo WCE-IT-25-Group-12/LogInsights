@@ -19,13 +19,16 @@ import { ItemContent } from 'components/menu/ItemContent';
 import { SearchBar } from 'components/navbar/searchBar/SearchBar';
 import { SidebarResponsive } from 'components/sidebar/Sidebar';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect } from 'react';
 // Assets
-import navImage from 'assets/img/layout/Navbar.png';
+import navImage from 'assets/img/auth/menu.png';
 import { MdNotificationsNone, MdInfoOutline } from 'react-icons/md';
 import { IoMdMoon, IoMdSunny } from 'react-icons/io';
 import { FaEthereum } from 'react-icons/fa';
 import routes from 'routes';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { setSignedIn } from '../../redux/authSlice';
 export default function HeaderLinks(props) {
   const { secondary } = props;
   const { colorMode, toggleColorMode } = useColorMode();
@@ -43,6 +46,19 @@ export default function HeaderLinks(props) {
     '14px 17px 40px 4px rgba(112, 144, 176, 0.06)',
   );
   const borderButton = useColorModeValue('secondaryGray.500', 'whiteAlpha.200');
+
+  const dispatch = useDispatch(); // Redux dispatcher
+  const signedIn = useSelector((state) => state.auth.signedIn);
+  const navigate = useNavigate(); // React Router navigation
+  const handleLogout = () => {
+    dispatch(setSignedIn(false));
+  };
+  useEffect(() => {
+    console.log('Signed in (updated):', signedIn);
+    if (signedIn) {
+      navigate('/admin/default');
+    }
+  }, [signedIn]);
   return (
     <Flex
       w={{ sm: '100%', md: 'auto' }}
@@ -169,7 +185,7 @@ export default function HeaderLinks(props) {
             me="10px"
           />
         </MenuButton>
-        <MenuList
+        {/* <MenuList
           boxShadow={shadow}
           p="20px"
           me={{ base: '30px', md: 'unset' }}
@@ -180,7 +196,13 @@ export default function HeaderLinks(props) {
           minW={{ base: 'unset' }}
           maxW={{ base: '360px', md: 'unset' }}
         >
-          <Image src={navImage} borderRadius="16px" mb="28px" />
+          <Image
+            src={navImage}
+            borderRadius="16px"
+            mb="18px"
+            w={{ base: '10%', xl: '10%' }}
+            h={{ base: '10%', xl: '10%' }}
+          />
           <Flex flexDirection="column">
             <Link w="100%" href="https://www.walchandsangli.ac.in/">
               <Button w="100%" h="44px" mb="10px" variant="brand">
@@ -211,7 +233,7 @@ export default function HeaderLinks(props) {
               </Button>
             </Link>
           </Flex>
-        </MenuList>
+        </MenuList> */}
       </Menu>
 
       <Button
@@ -264,32 +286,37 @@ export default function HeaderLinks(props) {
               fontWeight="700"
               color={textColor}
             >
-              👋&nbsp; Hey, Adela
+              👋&nbsp; Hey, Team 12
             </Text>
           </Flex>
           <Flex flexDirection="column" p="10px">
-            <MenuItem
-              _hover={{ bg: 'none' }}
-              _focus={{ bg: 'none' }}
-              borderRadius="8px"
-              px="14px"
-            >
-              <Text fontSize="sm">Profile Settings</Text>
-            </MenuItem>
-            <MenuItem
+            <NavLink key={0} to={'/admin/home'}>
+              <MenuItem
+                as={Link}
+                to="/home"
+                _hover={{ bg: 'none' }}
+                _focus={{ bg: 'none' }}
+                borderRadius="8px"
+                px="14px"
+              >
+                <Text fontSize="sm">Profile Settings</Text>
+              </MenuItem>
+            </NavLink>
+            {/* <MenuItem
               _hover={{ bg: 'none' }}
               _focus={{ bg: 'none' }}
               borderRadius="8px"
               px="14px"
             >
               <Text fontSize="sm">Newsletter Settings</Text>
-            </MenuItem>
+            </MenuItem> */}
             <MenuItem
               _hover={{ bg: 'none' }}
               _focus={{ bg: 'none' }}
               color="red.400"
               borderRadius="8px"
               px="14px"
+              onClick={handleLogout}
             >
               <Text fontSize="sm">Log out</Text>
             </MenuItem>

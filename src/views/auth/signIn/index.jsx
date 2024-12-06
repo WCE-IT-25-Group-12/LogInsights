@@ -1,5 +1,5 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 // Chakra imports
 import {
   Box,
@@ -25,16 +25,9 @@ import { FcGoogle } from 'react-icons/fc';
 import { MdOutlineRemoveRedEye } from 'react-icons/md';
 import { RiEyeCloseLine } from 'react-icons/ri';
 import { useDispatch, useSelector } from 'react-redux';
-import { toggleSignIn } from '../../../redux/store';
+import { setSignedIn } from '../../../redux/authSlice';
 
 function SignIn() {
-  const signedIn = useSelector((state) => state.signedIn);
-  const dispatch = useDispatch();
-
-  const handleToggle = () => {
-    dispatch(toggleSignIn());
-  };
-
   // Chakra color mode
   const textColor = useColorModeValue('navy.700', 'white');
   const textColorSecondary = 'gray.400';
@@ -53,6 +46,24 @@ function SignIn() {
   );
   const [show, setShow] = React.useState(false);
   const handleClick = () => setShow(!show);
+  const dispatch = useDispatch(); // Redux dispatcher
+  const signedIn = useSelector((state) => state.auth.signedIn);
+
+  const navigate = useNavigate(); // React Router navigation
+  const handleSubmit = () => {
+    // Dispatch Redux action to set signedIn as true
+    dispatch(setSignedIn(true));
+    // console.log('signedIn', signedIn);
+    // // Navigate to /admin/home
+    // navigate('/admin/home');
+  };
+  useEffect(() => {
+    console.log('Signed in (updated):', signedIn);
+    if (signedIn) {
+      navigate('/admin/default');
+    }
+  }, [signedIn]);
+
   return (
     <DefaultAuth illustrationBackground={illustration} image={illustration}>
       <Flex
@@ -93,7 +104,7 @@ function SignIn() {
           me="auto"
           mb={{ base: '20px', md: 'auto' }}
         >
-          <Button
+          {/* <Button
             fontSize="sm"
             me="0px"
             mb="26px"
@@ -109,14 +120,14 @@ function SignIn() {
           >
             <Icon as={FcGoogle} w="20px" h="20px" me="10px" />
             Sign in with Google
-          </Button>
-          <Flex align="center" mb="25px">
+          </Button> */}
+          {/* <Flex align="center" mb="25px">
             <HSeparator />
             <Text color="gray.400" mx="14px">
               or
             </Text>
             <HSeparator />
-          </Flex>
+          </Flex> */}
           <FormControl>
             <FormLabel
               display="flex"
@@ -202,6 +213,7 @@ function SignIn() {
               w="100%"
               h="50"
               mb="24px"
+              onClick={handleSubmit}
             >
               Sign In
             </Button>
