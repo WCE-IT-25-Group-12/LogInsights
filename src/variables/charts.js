@@ -257,6 +257,10 @@ export const lineChartDataTotalSpent = [
     data: [50, 64, 48, 20, 49, 68],
   },
   {
+    name: 'Cloud Logs',
+    data: [5, 4, 41, 30, 39, 48],
+  },
+  {
     name: 'System Logs',
     data: [30, 40, 24, 46, 20, 46],
   },
@@ -276,7 +280,7 @@ export const lineChartOptionsTotalSpent = {
       color: '#4318FF',
     },
   },
-  colors: ['#4318FF', '#39B8FF'],
+  colors: ['#4318FF', '#39B8FF', '#EFF4FB'],
   markers: {
     size: 0,
     colors: 'white',

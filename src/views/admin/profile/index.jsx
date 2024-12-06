@@ -1,5 +1,6 @@
 import {
   Box,
+  Flex,
   Grid,
   SimpleGrid,
   Text,
@@ -26,6 +27,10 @@ export default function Overview() {
   const textColorSecondary = 'gray.400';
 
   const msg = useSelector((state) => state.auth.msg);
+  const allow = useSelector((state) => state.auth.para1);
+  const deny = useSelector((state) => state.auth.para2);
+  const drop = useSelector((state) => state.auth.para3);
+
   return (
     <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>
       {/* Main Fields */}
@@ -66,37 +71,59 @@ export default function Overview() {
         />
       </Grid>
 
-      {msg && (
-        <Grid
-          mb="20px"
-          templateColumns={{
-            base: '1fr',
-            lg: 'repeat(2, 1fr)',
-            '2xl': '1.34fr 2.68fr', // Adjusted to take up the space
-          }}
-          templateRows={{
-            base: '1fr',
-            lg: 'repeat(2, 1fr)',
-            '2xl': '1fr', // One row for both components
-          }}
-          gap={{ base: '20px', xl: '20px' }}
+      <Grid
+        mb="20px"
+        templateColumns="repeat(3, 1fr)" // Three equal columns
+        gap="20px" // Space between boxes
+      >
+        <Box
+          backgroundColor="green"
+          color="white"
+          p="20px"
+          textAlign="center"
+          borderRadius="1rem"
         >
-          <Box gridArea="1 / 1 / 4 / 4">
-            <Text
-              color={textColorPrimary}
-              fontWeight="bold"
-              fontSize="2xl"
-              mt="10px"
-              mb="4px"
-            >
-              For the provided Log File:
-            </Text>
-            <Text color={textColorSecondary} fontSize="lg" me="26px" mb="40px">
-              According to the provided log file, {msg}
-            </Text>
-          </Box>
-        </Grid>
-      )}
+          <Flex direction="column" align="center" justify="center">
+            <Text fontSize="4xl" fontWeight="bold">
+              {allow}
+            </Text>{' '}
+            {/* Large number */}
+            <Text fontSize="md">Allow</Text> {/* Medium font text */}
+          </Flex>
+        </Box>
+
+        <Box
+          backgroundColor="red"
+          color="white"
+          p="20px"
+          textAlign="center"
+          borderRadius="1rem"
+        >
+          <Flex direction="column" align="center" justify="center">
+            <Text fontSize="4xl" fontWeight="bold">
+              {deny}
+            </Text>{' '}
+            {/* Large number */}
+            <Text fontSize="md">Deny</Text> {/* Medium font text */}
+          </Flex>
+        </Box>
+        <Box
+          backgroundColor="black"
+          color="white"
+          p="20px"
+          textAlign="center"
+          borderRadius="1rem"
+        >
+          <Flex direction="column" align="center" justify="center">
+            <Text fontSize="4xl" fontWeight="bold">
+              {drop}
+            </Text>{' '}
+            {/* Large number */}
+            <Text fontSize="md">Drop</Text> {/* Medium font text */}
+          </Flex>
+        </Box>
+      </Grid>
+
       <Grid
         mb="20px"
         templateColumns={{

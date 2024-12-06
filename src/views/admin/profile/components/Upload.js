@@ -12,7 +12,12 @@ import {
 import { useDropzone } from 'react-dropzone';
 import Papa from 'papaparse';
 import { useDispatch } from 'react-redux';
-import { setMsg } from '../../../../redux/authSlice';
+import {
+  setMsg,
+  setPara1,
+  setPara2,
+  setPara3,
+} from '../../../../redux/authSlice';
 
 export default function Upload(props) {
   const [logType, setLogType] = useState('');
@@ -88,23 +93,34 @@ export default function Upload(props) {
       console.log('Converting file to JSON...');
       const jsonData = await convertCSVToJSON(file);
 
-      console.log('JSON data to be sent:', jsonData[0]);
-      const response = await fetch('/predict', {
+      console.log('JSON data to be sent:', jsonData);
+      const response = await fetch('http://172.20.10.4:8000/predict', {
         method: 'POST',
-        body: JSON.stringify(jsonData[0]),
+        body: JSON.stringify(jsonData),
         headers: {
           'Content-type': 'application/json',
         },
       });
 
-      const text = await response.text();
-      console.log('Response from server:', text);
+      const text = await response.json();
+      console.log(
+        'Response from server:',
+        text.predictions,
+        text.predictions.allow,
+        text.predictions.deny,
+        text.predictions.drop,
+      );
+      dispatch(setPara1(text.predictions.allow));
+      dispatch(setPara2(text.predictions.deny));
+      dispatch(setPara3(text.predictions.drop));
 
       let responseMsg = '';
 
       if (text === 'Predictions: 0.0') {
         responseMsg = 'There is no anomaly in the log file. It is secure.';
       } else if (text === 'Predictions: 1.0') {
+        responseMsg = 'There is an anomaly in the log file. It is not secure.';
+      } else if (text === 'Predictions: 2.0') {
         responseMsg = 'There is an anomaly in the log file. It is not secure.';
       } else {
         responseMsg = '';
