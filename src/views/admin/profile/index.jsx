@@ -1,4 +1,10 @@
-import { Box, Grid } from '@chakra-ui/react';
+import {
+  Box,
+  Grid,
+  SimpleGrid,
+  Text,
+  useColorModeValue,
+} from '@chakra-ui/react';
 
 // Custom components
 import Banner from 'views/admin/profile/components/Banner';
@@ -11,9 +17,15 @@ import Upload from 'views/admin/profile/components/Upload';
 // Assets
 import banner from 'assets/img/auth/banner.png';
 import avatar from 'assets/img/avatars/avatar4.png';
-import React from 'react';
+import { useState } from 'react';
+import Information from './components/Information';
+import { useSelector } from 'react-redux';
 
 export default function Overview() {
+  const textColorPrimary = useColorModeValue('secondaryGray.900', 'white');
+  const textColorSecondary = 'gray.400';
+
+  const msg = useSelector((state) => state.auth.msg);
   return (
     <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>
       {/* Main Fields */}
@@ -53,6 +65,38 @@ export default function Overview() {
           pb={{ base: '100px', lg: '20px' }}
         />
       </Grid>
+
+      {msg && (
+        <Grid
+          mb="20px"
+          templateColumns={{
+            base: '1fr',
+            lg: 'repeat(2, 1fr)',
+            '2xl': '1.34fr 2.68fr', // Adjusted to take up the space
+          }}
+          templateRows={{
+            base: '1fr',
+            lg: 'repeat(2, 1fr)',
+            '2xl': '1fr', // One row for both components
+          }}
+          gap={{ base: '20px', xl: '20px' }}
+        >
+          <Box gridArea="1 / 1 / 4 / 4">
+            <Text
+              color={textColorPrimary}
+              fontWeight="bold"
+              fontSize="2xl"
+              mt="10px"
+              mb="4px"
+            >
+              For the provided Log File:
+            </Text>
+            <Text color={textColorSecondary} fontSize="lg" me="26px" mb="40px">
+              According to the provided log file, {msg}
+            </Text>
+          </Box>
+        </Grid>
+      )}
       <Grid
         mb="20px"
         templateColumns={{

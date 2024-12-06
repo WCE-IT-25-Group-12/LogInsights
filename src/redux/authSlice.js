@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   signedIn: false,
+  msg: '',
 };
 
 const authSlice = createSlice({
@@ -13,8 +14,11 @@ const authSlice = createSlice({
       console.log('setSignedIn called with:', action.payload);
       state.signedIn = action.payload;
     },
+    setMsg: (state, action) => {
+      state.msg = action.payload;
+    },
   },
 });
 
-export const { setSignedIn } = authSlice.actions;
+export const { setSignedIn, setMsg } = authSlice.actions;
 export default authSlice.reducer;
