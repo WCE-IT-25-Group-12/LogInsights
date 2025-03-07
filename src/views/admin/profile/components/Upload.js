@@ -6,10 +6,10 @@ import {
   Select,
   Text,
   Spinner,
-  useColorModeValue,
   useToast,
 } from '@chakra-ui/react';
 import { useDropzone } from 'react-dropzone';
+import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { useDispatch } from 'react-redux';
 import {
@@ -21,54 +21,95 @@ import {
 
 export default function Upload(props) {
   const [logType, setLogType] = useState('');
+  const [detectedLogType, setDetectedLogType] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  // const [msg, setMsg] = useState('');
   const toast = useToast();
   const dispatch = useDispatch();
 
-  const handleLogTypeChange = (event) => {
-    const selectedLogType = event.target.value;
-    console.log('Selected log type:', selectedLogType);
-    setLogType(selectedLogType);
+  // Function to detect log type
+  const detectLogType = (data) => {
+    const firstRow = data[1]; // First row of CSV (object format)
+    console.log('First row data:', firstRow);
+
+    if (!firstRow) {
+      console.warn("Empty file or couldn't parse.");
+      return '';
+    }
+
+    if ('NAT Source Port' in firstRow || 'Packets' in firstRow) {
+      return 'firewall';
+    }
+    if ('LineId' in firstRow || 'Level' in firstRow) {
+      return 'system';
+    }
+    if (
+      'requestParameterinistancceType' in firstRow ||
+      'awsRegion' in firstRow
+    ) {
+      return 'cloud';
+    }
+
+    console.warn('No matching log type found.');
+    return 'unknown';
+  };
+
+  // Function to handle file parsing
+  const handleFileUpload = (uploadedFile) => {
+    if (uploadedFile.name.endsWith('.xlsx')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0]; // Get first sheet
+        const worksheet = workbook.Sheets[sheetName];
+
+        // Convert worksheet to CSV
+        const csvData = XLSX.utils.sheet_to_csv(worksheet);
+
+        // Parse the converted CSV
+        Papa.parse(csvData, {
+          complete: (result) => {
+            const detectedType = detectLogType(result.data);
+            setDetectedLogType(detectedType);
+            setLogType(detectedType);
+          },
+          header: true,
+          skipEmptyLines: true,
+          dynamicTyping: true,
+        });
+      };
+      reader.readAsArrayBuffer(uploadedFile);
+    } else {
+      // If it's already a CSV file, parse it directly
+      Papa.parse(uploadedFile, {
+        complete: (result) => {
+          const detectedType = detectLogType(result.data);
+          setDetectedLogType(detectedType);
+          setLogType(detectedType);
+        },
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true,
+      });
+    }
   };
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop: (acceptedFiles) => {
       const uploadedFile = acceptedFiles[0];
-      console.log('Uploaded file:', uploadedFile);
       setFile(uploadedFile);
+      handleFileUpload(uploadedFile);
     },
-    accept: '.csv',
+    accept: '.csv, .xlsx',
     disabled: loading,
   });
 
-  const convertCSVToJSON = (csvFile) => {
-    console.log('Converting CSV to JSON...');
-    return new Promise((resolve, reject) => {
-      Papa.parse(csvFile, {
-        complete: (result) => {
-          console.log('Parsed JSON data:', result.data);
-          resolve(result.data);
-        },
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: true,
-        error: (err) => {
-          console.error('Error parsing CSV:', err);
-          reject(err);
-        },
-      });
-    });
-  };
-
   const handleSubmit = async () => {
-    console.log('Submitting form...');
     if (!file) {
-      console.warn('No file uploaded.');
       toast({
         title: 'No file uploaded',
-        description: 'Please upload a CSV file.',
+        description: 'Please upload a CSV or XLSX file.',
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -77,10 +118,9 @@ export default function Upload(props) {
     }
 
     if (!logType) {
-      console.warn('No log type selected.');
       toast({
         title: 'No log type selected',
-        description: 'Please select a log type.',
+        description: 'Please select a log type before submitting.',
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -90,41 +130,40 @@ export default function Upload(props) {
 
     try {
       setLoading(true);
-      console.log('Converting file to JSON...');
-      const jsonData = await convertCSVToJSON(file);
 
-      console.log('JSON data to be sent:', jsonData);
-      const response = await fetch('http://172.20.10.4:8000/predict', {
+      const jsonData = await new Promise((resolve, reject) => {
+        Papa.parse(file, {
+          complete: (result) => resolve(result.data),
+          header: true,
+          skipEmptyLines: true,
+          dynamicTyping: true,
+          error: reject,
+        });
+      });
+
+      // Determine API endpoint based on log type
+      const apiEndpoints = {
+        firewall: 'http://172.20.10.4:8000/firewall_predict',
+        system: 'http://172.20.10.4:8000/system_predict',
+        cloud: 'http://172.20.10.4:8000/cloud_predict',
+      };
+
+      const response = await fetch(apiEndpoints[logType] || '', {
         method: 'POST',
         body: JSON.stringify(jsonData),
-        headers: {
-          'Content-type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
 
       const text = await response.json();
-      console.log(
-        'Response from server:',
-        text.predictions,
-        text.predictions.allow,
-        text.predictions.deny,
-        text.predictions.drop,
-      );
+
       dispatch(setPara1(text.predictions.allow));
       dispatch(setPara2(text.predictions.deny));
       dispatch(setPara3(text.predictions.drop));
 
-      let responseMsg = '';
-
-      if (text === 'Predictions: 0.0') {
-        responseMsg = 'There is no anomaly in the log file. It is secure.';
-      } else if (text === 'Predictions: 1.0') {
-        responseMsg = 'There is an anomaly in the log file. It is not secure.';
-      } else if (text === 'Predictions: 2.0') {
-        responseMsg = 'There is an anomaly in the log file. It is not secure.';
-      } else {
-        responseMsg = '';
-      }
+      let responseMsg =
+        text.predictions.allow > 0
+          ? 'Anomalies detected in log file'
+          : 'Log file is secure';
 
       dispatch(setMsg(responseMsg));
       toast({
@@ -144,17 +183,12 @@ export default function Upload(props) {
         isClosable: true,
       });
     } finally {
-      console.log('Form submission completed.');
       setLoading(false);
     }
   };
 
-  const { ...rest } = props;
-  const textColorPrimary = useColorModeValue('secondaryGray.900', 'white');
-  const textColorSecondary = 'gray.400';
-
   return (
-    <Box {...rest} mb="20px" align="center" p="20px">
+    <Box {...props} mb="20px" align="center" p="20px">
       <Flex direction="column" align="center">
         <Flex
           {...getRootProps()}
@@ -175,29 +209,27 @@ export default function Upload(props) {
           {loading ? (
             <Spinner color="brand.500" size="lg" />
           ) : (
-            <Text fontSize="lg" color={textColorPrimary}>
+            <Text fontSize="lg">
               Drag and drop a file, or click to select a file
             </Text>
           )}
           {file && !loading && (
-            <Text mt="10px" color={textColorSecondary}>
+            <Text mt="10px" color="gray.400">
               {file.name}
             </Text>
           )}
         </Flex>
 
-        <Box width="300px" mt="4" mb="4">
-          <Select
-            placeholder="Select log type"
-            value={logType}
-            onChange={handleLogTypeChange}
-            isDisabled={loading}
-          >
-            <option value="firewall">Firewall Logs</option>
-            <option value="system">System Logs</option>
-            <option value="cloud">Cloud Logs</option>
-          </Select>
-        </Box>
+        {detectedLogType && (
+          <Box mt="4">
+            <Text fontSize="md" fontWeight="bold">
+              Detected Log Type:{' '}
+              <span style={{ color: '#CBC3E3' }}>
+                {detectedLogType.toUpperCase()}
+              </span>
+            </Text>
+          </Box>
+        )}
 
         <Button
           mt="20px"
