@@ -21,6 +21,9 @@ import avatar from 'assets/img/avatars/avatar4.png';
 import { useState } from 'react';
 import Information from './components/Information';
 import { useSelector } from 'react-redux';
+import UploadsTable from 'components/loganalyzer/UploadsTable';
+
+const dummyData = require('../../../components/loganalyzer/data.json');
 
 export default function Overview() {
   const textColorPrimary = useColorModeValue('secondaryGray.900', 'white');
@@ -30,6 +33,7 @@ export default function Overview() {
   const allow = useSelector((state) => state.auth.para1);
   const deny = useSelector((state) => state.auth.para2);
   const drop = useSelector((state) => state.auth.para3);
+  const hide = false;
 
   return (
     <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>
@@ -37,10 +41,10 @@ export default function Overview() {
       <Grid
         templateColumns={{
           base: '1fr',
-          lg: '1.34fr 1fr 1.62fr',
+          lg: '1.34fr 1fr',
         }}
         templateRows={{
-          base: 'repeat(3, 1fr)',
+          base: 'repeat(2, 1fr)',
           lg: '1fr',
         }}
         gap={{ base: '20px', xl: '20px' }}
@@ -60,68 +64,6 @@ export default function Overview() {
           used={25.6}
           total={50}
         />
-        <Upload
-          gridArea={{
-            base: '3 / 1 / 4 / 2',
-            lg: '1 / 3 / 2 / 4',
-          }}
-          minH={{ base: 'auto', lg: '420px', '2xl': '365px' }}
-          pe="20px"
-          pb={{ base: '100px', lg: '20px' }}
-        />
-      </Grid>
-
-      <Grid
-        mb="20px"
-        templateColumns="repeat(3, 1fr)" // Three equal columns
-        gap="20px" // Space between boxes
-      >
-        <Box
-          backgroundColor="green"
-          color="white"
-          p="20px"
-          textAlign="center"
-          borderRadius="1rem"
-        >
-          <Flex direction="column" align="center" justify="center">
-            <Text fontSize="4xl" fontWeight="bold">
-              {allow}
-            </Text>{' '}
-            {/* Large number */}
-            <Text fontSize="md">Allow</Text> {/* Medium font text */}
-          </Flex>
-        </Box>
-
-        <Box
-          backgroundColor="red"
-          color="white"
-          p="20px"
-          textAlign="center"
-          borderRadius="1rem"
-        >
-          <Flex direction="column" align="center" justify="center">
-            <Text fontSize="4xl" fontWeight="bold">
-              {deny}
-            </Text>{' '}
-            {/* Large number */}
-            <Text fontSize="md">Deny</Text> {/* Medium font text */}
-          </Flex>
-        </Box>
-        <Box
-          backgroundColor="black"
-          color="white"
-          p="20px"
-          textAlign="center"
-          borderRadius="1rem"
-        >
-          <Flex direction="column" align="center" justify="center">
-            <Text fontSize="4xl" fontWeight="bold">
-              {drop}
-            </Text>{' '}
-            {/* Large number */}
-            <Text fontSize="md">Drop</Text> {/* Medium font text */}
-          </Flex>
-        </Box>
       </Grid>
 
       <Grid
@@ -129,17 +71,17 @@ export default function Overview() {
         templateColumns={{
           base: '1fr',
           lg: 'repeat(2, 1fr)',
-          '2xl': '1.34fr 2.68fr', // Adjusted to take up the space
+          '2xl': '1.34fr 2.68fr',
         }}
         templateRows={{
           base: '1fr',
-          lg: 'repeat(2, 1fr)',
-          '2xl': '1fr', // One row for both components
+          lg: '1fr', // ✅ corrected
+          '2xl': '1fr',
         }}
         gap={{ base: '20px', xl: '20px' }}
       >
         <Projects
-          gridArea="1 / 1 / 2 / 2" // Adjusted grid area to span both columns
+          gridArea="1 / 1 / 2 / 2"
           banner={banner}
           avatar={avatar}
           name="Team 12"
@@ -148,12 +90,12 @@ export default function Overview() {
           followers="9.7k"
           following="274"
         />
-        <General
-          gridArea="1 / 2 / 2 / 3" // Adjusted grid area to span both columns
-          minH="365px"
-          pe="20px"
-        />
+        <General gridArea="1 / 2 / 2 / 3" minH="365px" pe="20px" />
       </Grid>
+
+      <Box>
+        <UploadsTable uploads={dummyData} />
+      </Box>
     </Box>
   );
 }

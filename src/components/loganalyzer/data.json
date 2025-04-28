@@ -1,0 +1,122 @@
+[
+  {
+    "sheetName": "system-logs-jan.json",
+    "logType": "System Logs",
+    "resultStatus": "Normal",
+    "resultDate": "2024-01-15T08:00:00Z",
+    "attackProbability": 3.5,
+    "metrics": [
+      { "name": "CPU Usage", "value": "45%" },
+      { "name": "Memory Usage", "value": "65%" },
+      { "name": "Disk Space", "value": "30GB" }
+    ]
+  },
+  {
+    "sheetName": "system-logs-apr.json",
+    "logType": "System Logs",
+    "resultStatus": "Normal",
+    "resultDate": "2024-04-20T10:30:00Z",
+    "attackProbability": 5.4,
+    "metrics": [
+      { "name": "CPU Usage", "value": "50%" },
+      { "name": "Memory Usage", "value": "70%" },
+      { "name": "Disk Space", "value": "25GB" }
+    ]
+  },
+  {
+    "sheetName": "firewall-logs-feb.json",
+    "logType": "Firewall Logs",
+    "resultStatus": "Probable Attack",
+    "resultDate": "2024-02-05T12:45:00Z",
+    "attackProbability": 72.1,
+    "metrics": [
+      { "name": "Blocked IPs", "value": 25 },
+      { "name": "Allowed Connections", "value": 8400 },
+      { "name": "Dropped Packets", "value": 35 }
+    ]
+  },
+  {
+    "sheetName": "cloud-logs-mar.json",
+    "logType": "Cloud Logs",
+    "resultStatus": "Normal",
+    "resultDate": "2024-03-10T14:00:00Z",
+    "attackProbability": 10.3,
+    "metrics": [
+      { "name": "API Requests", "value": 1200 },
+      { "name": "Error Rate", "value": "1.2%" },
+      { "name": "Response Time", "value": "150ms" }
+    ]
+  },
+  {
+    "sheetName": "system-logs-jul.json",
+    "logType": "System Logs",
+    "resultStatus": "Probable Attack",
+    "resultDate": "2024-07-18T16:30:00Z",
+    "attackProbability": 85.6,
+    "metrics": [
+      { "name": "CPU Usage", "value": "95%" },
+      { "name": "Memory Usage", "value": "92%" },
+      { "name": "Disk Space", "value": "2GB" }
+    ]
+  },
+  {
+    "sheetName": "firewall-logs-aug.json",
+    "logType": "Firewall Logs",
+    "resultStatus": "Normal",
+    "resultDate": "2024-08-07T09:00:00Z",
+    "attackProbability": 4.0,
+    "metrics": [
+      { "name": "Blocked IPs", "value": 1 },
+      { "name": "Allowed Connections", "value": 10300 },
+      { "name": "Dropped Packets", "value": 5 }
+    ]
+  },
+  {
+    "sheetName": "firewall-logs-may.json",
+    "logType": "Firewall Logs",
+    "resultStatus": "Normal",
+    "resultDate": "2024-05-12T13:15:00Z",
+    "attackProbability": 8.2,
+    "metrics": [
+      { "name": "Blocked IPs", "value": 4 },
+      { "name": "Allowed Connections", "value": 9800 },
+      { "name": "Dropped Packets", "value": 10 }
+    ]
+  },
+  {
+    "sheetName": "cloud-logs-jun.json",
+    "logType": "Cloud Logs",
+    "resultStatus": "Probable Attack",
+    "resultDate": "2024-06-22T17:30:00Z",
+    "attackProbability": 68.9,
+    "metrics": [
+      { "name": "API Requests", "value": 1500 },
+      { "name": "Error Rate", "value": "3.1%" },
+      { "name": "Response Time", "value": "300ms" }
+    ]
+  },
+  {
+    "sheetName": "cloud-logs-sep.json",
+    "logType": "Cloud Logs",
+    "resultStatus": "Probable Attack",
+    "resultDate": "2024-09-11T18:00:00Z",
+    "attackProbability": 77.4,
+    "metrics": [
+      { "name": "API Requests", "value": 1800 },
+      { "name": "Error Rate", "value": "4.5%" },
+      { "name": "Response Time", "value": "500ms" }
+    ]
+  },
+  {
+    "sheetName": "system-logs-oct.json",
+    "logType": "System Logs",
+    "resultStatus": "Normal",
+    "resultDate": "2024-10-03T19:00:00Z",
+    "attackProbability": 7.1,
+    "metrics": [
+      { "name": "CPU Usage", "value": "60%" },
+      { "name": "Memory Usage", "value": "85%" },
+      { "name": "Disk Space", "value": "15GB" }
+    ]
+  }
+]
