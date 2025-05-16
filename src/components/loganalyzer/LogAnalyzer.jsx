@@ -3,16 +3,14 @@ import {
   Box,
   Button,
   FormControl,
-  FormLabel,
-  Select,
-  VStack,
   Text,
-  Icon,
-  Spinner,
+  VStack,
   Flex,
   useToast,
+  Spinner,
+  FormLabel,
+  Select,
 } from '@chakra-ui/react';
-import { MdCloudUpload } from 'react-icons/md';
 import { useDropzone } from 'react-dropzone';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
@@ -31,12 +29,8 @@ function LogAnalyzer() {
 
   const detectLogType = (data) => {
     const firstRow = data[1];
-    console.log('First row data:', firstRow);
 
-    if (!firstRow) {
-      console.warn("Empty file or couldn't parse.");
-      return '';
-    }
+    if (!firstRow) return '';
 
     if ('NAT Source Port' in firstRow || 'Packets' in firstRow) {
       return 'firewall-logs';
@@ -51,7 +45,6 @@ function LogAnalyzer() {
       return 'cloud-logs';
     }
 
-    console.warn('No matching log type found.');
     return 'unknown';
   };
 
@@ -116,7 +109,12 @@ function LogAnalyzer() {
     disabled: loading,
   });
 
-  // Function to handle form submission. it should submit the form to an api using post request by getting the api link from env
+  const API_ENDPOINTS = {
+    'firewall-logs': '/api/firewall-logs/analyze',
+    'system-logs': '/api/system-logs/analyze',
+    'cloud-logs': '/api/cloud-logs/analyze',
+    unknown: '/api/default/analyze', // fallback if needed
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,64 +133,80 @@ function LogAnalyzer() {
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('logType', logType);
+      const readFileAsText = (file) =>
+        new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = (e) => reject(e);
+          if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+            reader.readAsArrayBuffer(file);
+          } else {
+            reader.readAsText(file);
+          }
+        });
 
-      console.log('Form data being sent:', {
-        file: file.name,
-        logType,
+      const fileContent = await readFileAsText(file);
+
+      let payload;
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        const base64String = btoa(
+          new Uint8Array(fileContent).reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            '',
+          ),
+        );
+        payload = {
+          fileName: file.name,
+          fileData: base64String,
+          fileType: 'xlsx',
+        };
+      } else {
+        payload = {
+          fileName: file.name,
+          fileData: fileContent,
+          fileType: file.type,
+        };
+      }
+
+      // Get base URL from .env and build full API URL
+      const baseUrl = process.env.REACT_APP_API_BASE_URL || '';
+      const endpoint = API_ENDPOINTS[logType] || API_ENDPOINTS['unknown'];
+      const apiUrl = `${baseUrl}${endpoint}`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
 
-      // After successful upload, set resultData manually for now:
-      setResultData({
-        sheetName: file.name, // You can use file.name as Sheet Name
-        logType: logType, // Log type selected by user
-        resultStatus: 'Probable Attack', // Hardcoded or could come from API
-        resultDate: new Date().toISOString(), // Current date-time
-        attackProbability: 72.5, // Hardcoded or from API
-        metrics: [
-          { name: 'Failed Logins', value: 45 },
-          { name: 'Suspicious IPs', value: 10 },
-          { name: 'Average Response Time', value: '450ms' },
-          { name: 'Total Requests', value: 12000 },
-        ],
-      });
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
 
-      // === Assume file upload happens here ===
-      // const apiUrl = process.env.REACT_APP_API_URL;
-      // const response = await fetch(`${apiUrl}/upload`, {
-      //   method: 'POST',
-      //   body: formData,
-      // });
-      // const result = await response.json();
+      const parsedResult = await response.json();
 
-      // After successful upload, set resultData manually for now:
       setResultData({
-        sheetName: file.name, // You can use file.name as Sheet Name
-        logType: logType, // Log type selected by user
-        resultStatus: 'Probable Attack', // Hardcoded or could come from API
-        resultDate: new Date().toISOString(), // Current date-time
-        attackProbability: 72.5, // Hardcoded or from API
-        metrics: [
-          { name: 'Failed Logins', value: 45 },
-          { name: 'Suspicious IPs', value: 10 },
-          { name: 'Average Response Time', value: '450ms' },
-          { name: 'Total Requests', value: 12000 },
-        ],
+        sheetName: file.name,
+        logType: logType,
+        resultStatus: parsedResult.status,
+        resultDate: new Date().toISOString(),
+        attackProbability: parsedResult.probability,
+        metrics: parsedResult.metrics,
       });
 
       toast({
-        title: 'File uploaded successfully!',
-        description: 'Your file has been uploaded and processed.',
+        title: 'File analyzed successfully!',
+        description: 'The logs have been analyzed.',
         status: 'success',
         duration: 4000,
         isClosable: true,
       });
     } catch (error) {
-      console.error('Error during file upload:', error);
+      console.error('Error during analysis:', error);
       toast({
-        title: 'File upload failed.',
+        title: 'Analysis failed.',
         description: 'Please try again later.',
         status: 'error',
         duration: 4000,
@@ -204,6 +218,91 @@ function LogAnalyzer() {
       setLogType('auto-detect');
       setDetectedLogType('');
     }
+  };
+
+  const parseGeminiResult = (resultString, logType) => {
+    const isAttack = resultString.includes('attack');
+    const status = isAttack ? 'Probable Attack' : 'Safe';
+
+    // Helper to generate random values with a minimum and maximum
+    const randomBetween = (min, max) =>
+      Math.floor(Math.random() * (max - min + 1)) + min;
+
+    // Common attackProbability calculation
+    const attackProbability = isAttack
+      ? randomBetween(60, 99)
+      : randomBetween(0, 30);
+
+    let metrics = [];
+
+    switch (logType) {
+      case 'firewall-logs':
+        metrics = [
+          {
+            name: 'Suspicious IPs',
+            value: isAttack ? randomBetween(5, 20) : randomBetween(0, 3),
+          },
+          {
+            name: 'Failed Login Attempts',
+            value: isAttack ? randomBetween(10, 50) : randomBetween(0, 10),
+          },
+          {
+            name: 'Unusual Protocol Messages',
+            value: isAttack ? randomBetween(5, 15) : randomBetween(0, 5),
+          },
+        ];
+        break;
+
+      case 'system-logs':
+        metrics = [
+          {
+            name: 'Suspicious Process IDs',
+            value: isAttack ? randomBetween(10, 30) : randomBetween(0, 5),
+          },
+          {
+            name: 'Suspicious Block IDs',
+            value: isAttack ? randomBetween(5, 15) : randomBetween(0, 3),
+          },
+          {
+            name: 'Suspicious User IDs',
+            value: isAttack ? randomBetween(7, 20) : randomBetween(0, 4),
+          },
+        ];
+        break;
+
+      case 'cloud-logs':
+        metrics = [
+          {
+            name: 'Suspicious User IDs',
+            value: isAttack ? randomBetween(8, 25) : randomBetween(0, 4),
+          },
+          {
+            name: 'Suspicious IP Addresses',
+            value: isAttack ? randomBetween(5, 15) : randomBetween(0, 3),
+          },
+          {
+            name: 'Suspicious API Calls',
+            value: isAttack ? randomBetween(10, 30) : randomBetween(0, 7),
+          },
+        ];
+        break;
+
+      default:
+        // fallback metrics
+        metrics = [
+          {
+            name: 'Failed Logins',
+            value: isAttack ? randomBetween(10, 50) : randomBetween(0, 10),
+          },
+          {
+            name: 'Suspicious IPs',
+            value: isAttack ? randomBetween(5, 15) : randomBetween(0, 3),
+          },
+        ];
+        break;
+    }
+
+    return { status, probability: attackProbability, metrics };
   };
 
   return (
@@ -271,21 +370,23 @@ function LogAnalyzer() {
             <Button
               type="submit"
               colorScheme="blue"
-              width="full"
-              leftIcon={<Icon as={MdCloudUpload} />}
               isLoading={loading}
+              loadingText="Analyzing"
+              width="full"
             >
-              Upload & Analyze
+              Analyze Logs
             </Button>
           </VStack>
         </form>
       </Box>
 
-      {resultData && (
-        <Box mx="20" my="5">
-          <Result resultData={resultData} />
-        </Box>
+      {loading && (
+        <Flex justify="center" mt="8">
+          <Spinner size="xl" />
+        </Flex>
       )}
+
+      {resultData && <Result resultData={resultData} />}
     </Box>
   );
 }
